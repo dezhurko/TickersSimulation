@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Channel : MonoBehaviour
 {
+    [SerializeField]
+    private float latency = 3f;
+    
     private Queue<Msg> messages = new Queue<Msg>();
 
     public event Action<Msg> MessagePost;
@@ -12,7 +15,7 @@ public class Channel : MonoBehaviour
     public void Post(Msg m)
     {
         m.TimestampInChannel = Time.time;
-        m.TravelTime = GetTravelTime();
+        m.TravelTime = GetLatencyTime();
         messages.Enqueue(m);
         
         MessagePost?.Invoke(m);
@@ -27,6 +30,7 @@ public class Channel : MonoBehaviour
             return messagesToGet;
         }
         
+        // TODO: scan all messages. FIFI doesn't work here.
         var m = messages.Peek();
         while (m != null && Time.time - m.TimestampInChannel > m.TravelTime)
         {
@@ -40,8 +44,8 @@ public class Channel : MonoBehaviour
     }
 
 
-    private float GetTravelTime()
+    private float GetLatencyTime()
     {
-        return 10f;
+        return latency;
     }
 }

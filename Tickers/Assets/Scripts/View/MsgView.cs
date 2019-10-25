@@ -3,15 +3,15 @@ using UnityEngine;
 
 public class MsgView : MonoBehaviour
 {
-    private Msg msg;
-    
+    public Msg Msg { get; private set; }
+
     [SerializeField]
     private TextMeshPro text;
 
 
     public void Setup(Msg msg)
     {
-        this.msg = msg;
+        this.Msg = msg;
 
         text.text = msg.Tick.ToString();
     }
