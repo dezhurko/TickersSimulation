@@ -7,7 +7,7 @@ public class Channel : MonoBehaviour
     [SerializeField]
     private float latency = 3f;
     
-    private Queue<Msg> messages = new Queue<Msg>();
+    private List<Msg> messages = new List<Msg>();
 
     public event Action<Msg> MessagePost;
     public event Action<Msg> MessageGet;
@@ -16,7 +16,7 @@ public class Channel : MonoBehaviour
     {
         m.TimestampInChannel = Time.time;
         m.TravelTime = GetLatencyTime();
-        messages.Enqueue(m);
+        messages.Add(m);
         
         MessagePost?.Invoke(m);
     }
@@ -29,20 +29,23 @@ public class Channel : MonoBehaviour
         {
             return messagesToGet;
         }
-        
-        // TODO: scan all messages. FIFI doesn't work here.
-        var m = messages.Peek();
-        while (m != null && Time.time - m.TimestampInChannel > m.TravelTime)
+
+        foreach (var m in messages)
         {
-            messagesToGet.Add(messages.Dequeue());
+            if (m != null && Time.time - m.TimestampInChannel > m.TravelTime)
+            {
+                messagesToGet.Add(m);
+            }
+        }
+
+        foreach (var m in messagesToGet)
+        {
+            messages.Remove(m);
             MessageGet?.Invoke(m);
-            
-            m = messages.Count > 0 ? messages.Peek() : null;
         }
 
         return messagesToGet.ToArray();
     }
-
 
     private float GetLatencyTime()
     {

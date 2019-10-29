@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Server : MonoBehaviour
@@ -14,6 +16,8 @@ public class Server : MonoBehaviour
     private Dictionary<int, Msg> buffer = new Dictionary<int, Msg>();
 
     private int bufferSize = 0;
+
+    public event Action<List<Msg>> BufferChanged;
 
     private void Awake()
     {
@@ -34,6 +38,8 @@ public class Server : MonoBehaviour
             buffer[msg.Tick] = msg;
 
             bufferSize = msg.Tick - ticker.Current;
+            
+            BufferChanged?.Invoke(buffer.Values.ToList());
 
             Debug.Log($"S[{ticker.Current}]. Receive tick: {msg.Tick}. Buffer size {bufferSize}");
         }
@@ -47,6 +53,10 @@ public class Server : MonoBehaviour
                 m.TimeSentServer = time.Current;
                 m.BufferSizeOnServer = bufferSize;
                 toClient.Post(m);
+
+                buffer.Remove(tickToProcess);
+                
+                BufferChanged?.Invoke(buffer.Values.ToList());
                 
                 Debug.Log($"S[{ticker.Current}]. Send tick: {m.Tick}. Buffer size {bufferSize}");
             }
