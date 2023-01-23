@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-public static class Constants
+﻿namespace Model
 {
-    public const float TickIntervalS = 1f;
+    public static class Constants
+    {
+        public const float TickIntervalS = 1f;
+    }
 }

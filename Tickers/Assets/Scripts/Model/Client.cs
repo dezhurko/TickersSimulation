@@ -1,47 +1,49 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.VersionControl;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Client : MonoBehaviour
+namespace Model
 {
-    [SerializeField]
-    private Channel toServer;
-    [SerializeField]
-    private Channel fromServer;
-
-    private LocalTime time;
-    private Ticker ticker;
-
-    private void Awake()
+    public class Client : MonoBehaviour
     {
-        time = new LocalTime();
-        ticker = new Ticker(time);
-        ticker.Current = 10;
-    }
+        [SerializeField] 
+        private Channel toServer;
+        [SerializeField] 
+        private Channel fromServer;
 
-    private void Update()
-    {
-        var ticks = ticker.TryTick();
+        private LocalTime time;
+        private Ticker ticker;
 
-        for (int t = 0; t < ticks; t++)
+        private void Awake()
         {
-            var m = new Msg()
+            time = new LocalTime();
+            ticker = new Ticker(time)
             {
-                Tick = ticker.Current,
-                TimeSentClient = time.Current,
+                Current = 10
             };
-            
-            toServer.Post(m);
-            
-            Debug.Log($"C[{ticker.Current}] send message.");
         }
 
-        var msgs = fromServer.Get();
-
-        foreach (var msg in msgs)
+        private void Update()
         {
-            Debug.Log($"C[{ticker.Current}] receive msg tick {msg.Tick}. buffer size {msg.BufferSizeOnServer}");
+            var ticks = ticker.TryTick();
+
+            for (int t = 0; t < ticks; t++)
+            {
+                var m = new Msg()
+                {
+                    Tick = ticker.Current,
+                    TimeSentClient = time.Current,
+                };
+
+                toServer.Post(m);
+
+                Debug.Log($"C[{ticker.Current}] send message.");
+            }
+
+            var msgs = fromServer.Get();
+
+            foreach (var msg in msgs)
+            {
+                Debug.Log($"C[{ticker.Current}] receive msg tick {msg.Tick}. buffer size {msg.BufferSizeOnServer}");
+            }
         }
     }
 }

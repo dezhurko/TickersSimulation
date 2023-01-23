@@ -2,53 +2,56 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Channel : MonoBehaviour
+namespace Model
 {
-    [SerializeField]
-    private float latency = 3f;
+    public class Channel : MonoBehaviour
+    {
+        [SerializeField]
+        private float latency = 3f;
     
-    private List<Msg> messages = new List<Msg>();
+        private List<Msg> messages = new List<Msg>();
 
-    public event Action<Msg> MessagePost;
-    public event Action<Msg> MessageGet;
+        public event Action<Msg> MessagePost;
+        public event Action<Msg> MessageGet;
 
-    public void Post(Msg m)
-    {
-        m.TimestampInChannel = Time.time;
-        m.TravelTime = GetLatencyTime();
-        messages.Add(m);
-        
-        MessagePost?.Invoke(m);
-    }
-
-    public IEnumerable<Msg> Get()
-    {
-        var messagesToGet = new List<Msg>();
-        
-        if (messages.Count == 0)
+        public void Post(Msg m)
         {
-            return messagesToGet;
+            m.TimestampInChannel = Time.time;
+            m.TravelTime = GetLatencyTime();
+            messages.Add(m);
+        
+            MessagePost?.Invoke(m);
         }
 
-        foreach (var m in messages)
+        public IEnumerable<Msg> Get()
         {
-            if (m != null && Time.time - m.TimestampInChannel > m.TravelTime)
+            var messagesToGet = new List<Msg>();
+        
+            if (messages.Count == 0)
             {
-                messagesToGet.Add(m);
+                return messagesToGet;
             }
+
+            foreach (var m in messages)
+            {
+                if (m != null && Time.time - m.TimestampInChannel > m.TravelTime)
+                {
+                    messagesToGet.Add(m);
+                }
+            }
+
+            foreach (var m in messagesToGet)
+            {
+                messages.Remove(m);
+                MessageGet?.Invoke(m);
+            }
+
+            return messagesToGet.ToArray();
         }
 
-        foreach (var m in messagesToGet)
+        private float GetLatencyTime()
         {
-            messages.Remove(m);
-            MessageGet?.Invoke(m);
+            return latency;
         }
-
-        return messagesToGet.ToArray();
-    }
-
-    private float GetLatencyTime()
-    {
-        return latency;
     }
 }

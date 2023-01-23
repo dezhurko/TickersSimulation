@@ -1,18 +1,21 @@
-﻿using TMPro;
+﻿using Model;
+using TMPro;
 using UnityEngine;
 
-public class MsgView : MonoBehaviour
+namespace View
 {
-    public Msg Msg { get; private set; }
-
-    [SerializeField]
-    private TextMeshPro text;
-
-
-    public void Setup(Msg msg)
+    public class MsgView : MonoBehaviour
     {
-        this.Msg = msg;
+        [SerializeField] 
+        private TextMeshPro text;
 
-        text.text = msg.Tick.ToString();
+        public Msg Msg { get; private set; }
+
+        public void Setup(Msg msg)
+        {
+            this.Msg = msg;
+
+            text.text = msg.Tick.ToString();
+        }
     }
 }

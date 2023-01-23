@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 
-public class LocalTime
+namespace Model
 {
-    public float Current => Time.time;
+    public class LocalTime
+    {
+        public float Current => Time.time;
+    }
 }

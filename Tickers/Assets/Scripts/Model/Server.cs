@@ -1,64 +1,66 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class Server : MonoBehaviour
+namespace Model
 {
-    [SerializeField]
-    private Channel toClient;
-    [SerializeField]
-    private Channel fromClient;
-
-    private LocalTime time;
-    private Ticker ticker;
-    private Dictionary<int, Msg> buffer = new Dictionary<int, Msg>();
-
-    private int bufferSize = 0;
-
-    public event Action<List<Msg>> BufferChanged;
-
-    private void Awake()
+    public class Server : MonoBehaviour
     {
-        time = new LocalTime();
-        ticker = new Ticker(time);
-    }
+        [SerializeField] 
+        private Channel toClient;
+        [SerializeField] 
+        private Channel fromClient;
 
-    private void Update()
-    {
-        var ticks = ticker.TryTick();
+        private LocalTime time;
+        private Ticker ticker;
+        private int bufferSize = 0;
         
-        
-        var msgs = fromClient.Get();
+        private readonly Dictionary<int, Msg> buffer = new Dictionary<int, Msg>();
 
-        foreach (var msg in msgs)
+        public event Action<List<Msg>> BufferChanged;
+
+        private void Awake()
         {
-            msg.TimeReceivedServer = time.Current;
-            buffer[msg.Tick] = msg;
-
-            bufferSize = msg.Tick - ticker.Current;
-            
-            BufferChanged?.Invoke(buffer.Values.ToList());
-
-            Debug.Log($"S[{ticker.Current}]. Receive tick: {msg.Tick}. Buffer size {bufferSize}");
+            time = new LocalTime();
+            ticker = new Ticker(time);
         }
 
-        for (int t = 0; t < ticks; t++)
+        private void Update()
         {
-            var tickToProcess = ticker.Current - ticks + t + 1;
-            if (buffer.ContainsKey(tickToProcess))
-            {
-                var m = buffer[tickToProcess];
-                m.TimeSentServer = time.Current;
-                m.BufferSizeOnServer = bufferSize;
-                toClient.Post(m);
+            var ticks = ticker.TryTick();
 
-                buffer.Remove(tickToProcess);
-                
+
+            var msgs = fromClient.Get();
+
+            foreach (var msg in msgs)
+            {
+                msg.TimeReceivedServer = time.Current;
+                buffer[msg.Tick] = msg;
+
+                bufferSize = msg.Tick - ticker.Current;
+
                 BufferChanged?.Invoke(buffer.Values.ToList());
-                
-                Debug.Log($"S[{ticker.Current}]. Send tick: {m.Tick}. Buffer size {bufferSize}");
+
+                Debug.Log($"S[{ticker.Current}]. Receive tick: {msg.Tick}. Buffer size {bufferSize}");
+            }
+
+            for (int t = 0; t < ticks; t++)
+            {
+                var tickToProcess = ticker.Current - ticks + t + 1;
+                if (buffer.ContainsKey(tickToProcess))
+                {
+                    var m = buffer[tickToProcess];
+                    m.TimeSentServer = time.Current;
+                    m.BufferSizeOnServer = bufferSize;
+                    toClient.Post(m);
+
+                    buffer.Remove(tickToProcess);
+
+                    BufferChanged?.Invoke(buffer.Values.ToList());
+
+                    Debug.Log($"S[{ticker.Current}]. Send tick: {m.Tick}. Buffer size {bufferSize}");
+                }
             }
         }
     }

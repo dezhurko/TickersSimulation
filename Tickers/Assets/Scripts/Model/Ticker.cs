@@ -1,40 +1,43 @@
 ﻿using UnityEngine;
 
-public class Ticker
+namespace Model
 {
-    private float lastTickTime;
-    private float totalAdjustment;
-    private LocalTime time;
-
-    public Ticker(LocalTime time)
+    public class Ticker
     {
-        this.time = time;
-    }
-    
-    public int Current = 0;
+        private float lastTickTime;
+        private float totalAdjustment;
+        private readonly LocalTime localTime;
 
-    public void Adjust(float adjustment)
-    {
-        totalAdjustment += adjustment;
-    }
-
-    public int TryTick()
-    {
-        var time = GetAdjTime();
-        var ticked = Mathf.FloorToInt((time - lastTickTime) / Constants.TickIntervalS);
-        if (ticked > 0)
+        public Ticker(LocalTime localTime)
         {
-            lastTickTime += ticked * Constants.TickIntervalS;
-            Current += (int)ticked;
+            this.localTime = localTime;
+        }
+    
+        public int Current = 0;
 
-            return (int)ticked;
+        public void Adjust(float adjustment)
+        {
+            totalAdjustment += adjustment;
         }
 
-        return 0;
-    }
+        public int TryTick()
+        {
+            var time = GetAdjTime();
+            var ticked = Mathf.FloorToInt((time - lastTickTime) / Constants.TickIntervalS);
+            if (ticked > 0)
+            {
+                lastTickTime += ticked * Constants.TickIntervalS;
+                Current += (int)ticked;
 
-    private float GetAdjTime()
-    {
-        return time.Current + totalAdjustment;
+                return (int)ticked;
+            }
+
+            return 0;
+        }
+
+        private float GetAdjTime()
+        {
+            return localTime.Current + totalAdjustment;
+        }
     }
 }
